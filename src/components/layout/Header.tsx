@@ -31,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="relative z-20"
     >
       <GlassCard className="mb-6">
         <div className="flex items-center justify-between gap-4">

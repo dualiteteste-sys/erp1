@@ -100,7 +100,7 @@ export const InformacoesGeraisSection: React.FC<InformacoesGeraisSectionProps> =
           control={control}
           render={({ field }) => (
             <InputWrapper label="Tipo de Pessoa *">
-              <select className="glass-input" {...field}>
+              <select className="glass-input" {...field} value={field.value || ''}>
                 <option value={TipoPessoa.PJ}>Pessoa Jurídica</option>
                 <option value={TipoPessoa.PF}>Pessoa Física</option>
               </select>
@@ -112,7 +112,7 @@ export const InformacoesGeraisSection: React.FC<InformacoesGeraisSectionProps> =
           control={control}
           render={({ field }) => (
             <InputWrapper label="Tipo de Contato *">
-              <select className="glass-input" {...field}>
+              <select className="glass-input" {...field} value={field.value || ''}>
                 {Object.values(TipoContato).map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </InputWrapper>

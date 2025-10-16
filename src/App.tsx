@@ -15,6 +15,7 @@ const Clientes = lazy(() => import('./pages/Clientes').then(module => ({ default
 const Produtos = lazy(() => import('./pages/Produtos').then(module => ({ default: module.Produtos })));
 const Embalagens = lazy(() => import('./pages/Embalagens').then(module => ({ default: module.Embalagens })));
 const Servicos = lazy(() => import('./pages/Servicos').then(module => ({ default: module.Servicos })));
+const Vendedores = lazy(() => import('./pages/Vendedores').then(module => ({ default: module.Vendedores })));
 const EmDesenvolvimento = lazy(() => import('./pages/EmDesenvolvimento').then(module => ({ default: module.EmDesenvolvimento })));
 const SettingsRoutes = lazy(() => import('./pages/configuracoes'));
 
@@ -42,10 +43,10 @@ function App() {
                           <Route path="/produtos" element={<Produtos />} />
                           <Route path="/embalagens" element={<Embalagens />} />
                           <Route path="/servicos" element={<Servicos />} />
+                          <Route path="/vendedores" element={<Vendedores />} />
                           <Route path="/configuracoes/*" element={<SettingsRoutes />} />
 
                           {/* Módulos em Desenvolvimento */}
-                          <Route path="/vendedores" element={<EmDesenvolvimento modulo="Vendedores" />} />
                           <Route path="/cadastros/relatorios" element={<EmDesenvolvimento modulo="Relatórios de Cadastros" />} />
                           
                           <Route path="/ordens-compra" element={<EmDesenvolvimento modulo="Ordens de Compra" />} />

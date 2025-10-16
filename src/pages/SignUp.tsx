@@ -131,7 +131,7 @@ export const SignUp: React.FC = () => {
               whileHover={{ y: -2 }}
               whileTap={{ y: 1 }}
             >
-              {isSubmitting ? <Loader2 className="animate-spin" /> : <User />}
+              {isSubmitting ? <Loader2 /> : <User />}
               <span>{isSubmitting ? 'Criando conta...' : 'Criar conta'}</span>
             </motion.button>
           </form>

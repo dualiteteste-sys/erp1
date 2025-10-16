@@ -1,16 +1,17 @@
 import React from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, FileText, Trash2, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, FileText, Trash2 } from 'lucide-react';
 import { GlassButton } from './GlassButton';
 import { IEntity } from '../../types';
 import toast from 'react-hot-toast';
 
+// Atualizada para corresponder à estrutura de dados do banco (ex: ClienteAnexo)
 interface AnexoGenerico extends IEntity {
-  nomeArquivo: string;
-  path: string;
-  tamanho: number;
-  tipo: string;
+  filename: string;
+  storagePath: string;
+  tamanhoBytes?: number;
+  contentType?: string;
 }
 
 interface AttachmentManagerProps<T extends AnexoGenerico> {
@@ -19,7 +20,6 @@ interface AttachmentManagerProps<T extends AnexoGenerico> {
   getPublicUrlService: (filePath: string) => string;
 }
 
-// Type guard para diferenciar File de AnexoGenerico
 const isFile = (item: AnexoGenerico | File): item is File => {
   return item instanceof File;
 };
@@ -54,8 +54,8 @@ export const AttachmentManager = <T extends AnexoGenerico>({
     onAttachmentsChange(newAttachments);
   };
 
-  const formatBytes = (bytes: number, decimals = 2) => {
-    if (bytes === 0) return '0 Bytes';
+  const formatBytes = (bytes: number | undefined, decimals = 2) => {
+    if (bytes === undefined || bytes === 0) return '0 Bytes';
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -64,10 +64,10 @@ export const AttachmentManager = <T extends AnexoGenerico>({
   };
 
   const getFileIcon = (item: T | File) => {
-    const type = isFile(item) ? item.type : item.tipo;
-    if (type.startsWith('image/')) {
-        const url = isFile(item) ? URL.createObjectURL(item) : getPublicUrlService(item.path);
-        return <img src={url} alt={isFile(item) ? item.name : item.nomeArquivo} className="w-10 h-10 object-cover rounded-md flex-shrink-0" />;
+    const type = isFile(item) ? item.type : item.contentType;
+    if (type && type.startsWith('image/')) {
+        const url = isFile(item) ? URL.createObjectURL(item) : getPublicUrlService((item as T).storagePath);
+        return <img src={url} alt={isFile(item) ? item.name : (item as T).filename} className="w-10 h-10 object-cover rounded-md flex-shrink-0" />;
     }
     return <FileText className="text-gray-500 w-10 h-10 flex-shrink-0" size={24} />;
   }
@@ -94,7 +94,7 @@ export const AttachmentManager = <T extends AnexoGenerico>({
           <AnimatePresence>
             {attachments.map((item, index) => (
               <motion.div
-                key={isFile(item) ? item.name + item.lastModified : item.id}
+                key={isFile(item) ? item.name + item.lastModified : (item as T).id}
                 layout
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -108,20 +108,20 @@ export const AttachmentManager = <T extends AnexoGenerico>({
                     <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
                   ) : (
                     <a
-                      href={getPublicUrlService((item as T).path)}
+                      href={getPublicUrlService((item as T).storagePath)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-medium text-blue-600 hover:underline truncate"
                     >
-                      {(item as T).nomeArquivo}
+                      {(item as T).filename}
                     </a>
                   )}
                   <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>{formatBytes(isFile(item) ? item.size : item.tamanho)}</span>
+                    <span>{formatBytes(isFile(item) ? item.size : (item as T).tamanhoBytes)}</span>
                     {!isFile(item) && (
                       <>
                         <span>•</span>
-                        <span>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span>{new Date((item as T).createdAt).toLocaleDateString('pt-BR')}</span>
                       </>
                     )}
                   </div>

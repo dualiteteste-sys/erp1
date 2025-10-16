@@ -33,7 +33,7 @@ export const EnderecoSection: React.FC<EnderecoSectionProps> = ({ control, watch
         )} />
         <Controller name="uf" control={control} render={({ field }) => (
           <InputWrapper label="UF">
-            <select className="glass-input" {...field}><option value="">Selecione...</option>{ufs.map(uf => <option key={uf} value={uf}>{uf}</option>)}</select>
+            <select className="glass-input" {...field} value={field.value || ''}><option value="">Selecione...</option>{ufs.map(uf => <option key={uf} value={uf}>{uf}</option>)}</select>
           </InputWrapper>
         )} />
         <Controller name="endereco" control={control} render={({ field }) => (
@@ -74,7 +74,7 @@ export const EnderecoSection: React.FC<EnderecoSectionProps> = ({ control, watch
                     <InputWrapper label="Município Cobrança" className="md:col-span-2"><GlassInput {...field} /></InputWrapper>
                   )} />
                   <Controller name="cobrUf" control={control} render={({ field }) => (
-                    <InputWrapper label="UF Cobrança"><select className="glass-input" {...field}><option value="">Selecione...</option>{ufs.map(uf => <option key={uf} value={uf}>{uf}</option>)}</select></InputWrapper>
+                    <InputWrapper label="UF Cobrança"><select className="glass-input" {...field} value={field.value || ''}><option value="">Selecione...</option>{ufs.map(uf => <option key={uf} value={uf}>{uf}</option>)}</select></InputWrapper>
                   )} />
                   <Controller name="cobrEndereco" control={control} render={({ field }) => (
                     <InputWrapper label="Endereço Cobrança" className="md:col-span-3"><GlassInput {...field} /></InputWrapper>

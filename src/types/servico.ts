@@ -10,4 +10,10 @@ export interface Servico extends IEntity {
   descricao: string;
   preco: number;
   situacao: SituacaoServico;
+  codigo?: string;
+  unidade?: string;
+  codigoServico?: string;
+  nbs?: string;
+  descricaoComplementar?: string;
+  observacoes?: string;
 }

@@ -38,7 +38,7 @@ export const SmtpForm: React.FC<SmtpFormProps> = ({ control, watch }) => {
         control={control}
         render={({ field }) => (
           <InputWrapper label="Segurança da conexão">
-            <select className="glass-input" {...field}>
+            <select className="glass-input" {...field} value={field.value || ''}>
               <option value="none">Nenhuma</option>
               <option value="starttls">STARTTLS</option>
               <option value="ssl_tls">SSL/TLS</option>

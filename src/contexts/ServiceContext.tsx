@@ -3,7 +3,7 @@ import { serviceContainer } from '../compositionRoot';
 import { 
   IClienteService, IProdutoService, IEmbalagemService, 
   IConfiguracoesService, IDashboardService, IPapelService,
-  ICategoriaFinanceiraService, IFormaPagamentoService, IServicoService
+  ICategoriaFinanceiraService, IFormaPagamentoService, IServicoService, IVendedorService
 } from '../services/interfaces';
 
 export interface ServiceContainer {
@@ -11,6 +11,7 @@ export interface ServiceContainer {
   produto: IProdutoService;
   embalagem: IEmbalagemService;
   servico: IServicoService;
+  vendedor: IVendedorService;
   configuracoes: IConfiguracoesService;
   dashboard: IDashboardService;
   papel: IPapelService;

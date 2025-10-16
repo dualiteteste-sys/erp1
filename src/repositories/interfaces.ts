@@ -1,5 +1,5 @@
 import {
-  ClienteFornecedor, Produto, Embalagem, Papel, CategoriaFinanceira, FormaPagamento, Servico
+  ClienteFornecedor, Produto, Embalagem, Papel, CategoriaFinanceira, FormaPagamento, Servico, Vendedor
 } from '../types';
 import { Empresa } from '../types/empresa';
 import { IRepository } from '../types/base';
@@ -27,6 +27,9 @@ export interface IProdutoRepository extends IRepository<Produto> {
 }
 export interface IEmbalagemRepository extends IRepository<Embalagem> {}
 export interface IServicoRepository extends IRepository<Servico> {}
+export interface IVendedorRepository extends IRepository<Vendedor> {
+  checkEmailExists(empresaId: string, email: string, vendedorId?: string): Promise<boolean>;
+}
 export interface IDashboardRepository {
     getDashboardStats(empresaId: string): Promise<DashboardStats>;
     getFaturamentoMensal(empresaId: string): Promise<FaturamentoMensal[]>;

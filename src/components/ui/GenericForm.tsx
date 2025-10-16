@@ -34,13 +34,13 @@ export const GenericForm: React.FC<GenericFormProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-500/40 backdrop-blur flex items-center justify-center z-50 p-8"
+      className="fixed inset-0 bg-gray-500/40 backdrop-blur flex items-center justify-center z-50 p-4 md:p-8"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className={`w-full ${size} h-auto max-h-[95vh] flex flex-col`}
+        className={`w-full ${size} flex flex-col h-[90vh]`}
       >
         <div className="flex justify-end h-14 items-center">
           <GlassButton icon={X} variant="secondary" onClick={onCancel} />
@@ -51,13 +51,13 @@ export const GenericForm: React.FC<GenericFormProps> = ({
              <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
           </div>
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+            <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-styled">
               {children}
             </div>
 
             <div className="flex gap-4 p-8 border-t border-white/30 bg-glass-200">
               {canSave && (
-                <GlassButton type="submit" icon={loading ? Loader2 : Save} disabled={loading} className={loading ? 'animate-spin' : ''}>
+                <GlassButton type="submit" icon={loading ? Loader2 : Save} disabled={loading}>
                   {loading ? 'Salvando...' : 'Salvar'}
                 </GlassButton>
               )}

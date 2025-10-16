@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Filter, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Header } from '../components/layout/Header';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -42,11 +42,33 @@ export const Clientes: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [filtro, setFiltro] = useState('');
 
+  const [editingFullClient, setEditingFullClient] = useState<ClienteFornecedor | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
   const clientesFiltrados = clientes.filter(cliente =>
     cliente.nomeRazaoSocial.toLowerCase().includes(filtro.toLowerCase()) ||
     (cliente.email && cliente.email.toLowerCase().includes(filtro.toLowerCase())) ||
     (cliente.cnpjCpf && cliente.cnpjCpf.includes(filtro))
   );
+
+  const openEditFull = async (row: ClienteFornecedor) => {
+    setIsLoadingDetails(true);
+    handleOpenEditForm(row); // Abre o modal imediatamente com dados parciais
+    try {
+      const fullClient = await clienteService.findById(row.id);
+      if (fullClient) {
+        setEditingFullClient(fullClient); // Atualiza com os dados completos
+      } else {
+        toast.error('Cliente ou Fornecedor não encontrado.');
+        handleCloseForm();
+      }
+    } catch (err: any) {
+      toast.error(`Falha ao carregar detalhes: ${err.message}`);
+      handleCloseForm();
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
 
   const handleSave = async (formData: ClienteFornecedorFormData) => {
     if (!currentEmpresa) {
@@ -78,12 +100,14 @@ export const Clientes: React.FC = () => {
         savedClient = await createItem(dataToSave as Omit<ClienteFornecedor, 'id' | 'createdAt' | 'updatedAt'>);
       }
 
-      if (savedClient?.id) {
-        for (const file of filesToUpload) {
-          await clienteService.uploadAnexo(currentEmpresa.id, savedClient.id, file);
-        }
+      if (savedClient?.id && filesToUpload.length > 0) {
+        const uploadPromises = filesToUpload.map(file => 
+          clienteService.uploadAnexo(currentEmpresa.id, savedClient.id, file)
+        );
+        await Promise.all(uploadPromises);
       }
       
+      setEditingFullClient(null);
       handleCloseForm();
       await loadItems(editingItem ? currentPage : 1);
 
@@ -146,7 +170,13 @@ export const Clientes: React.FC = () => {
           actions={(item) => (
             <div className="flex items-center gap-2">
               {hasPermission('clientes.escrever') && (
-                <GlassButton icon={Edit2} variant="secondary" size="sm" onClick={() => handleOpenEditForm(item)} />
+                <GlassButton
+                  icon={isLoadingDetails && editingItem?.id === item.id ? Loader2 : Edit2}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => openEditFull(item)}
+                  disabled={isLoadingDetails && editingItem?.id === item.id}
+                />
               )}
               {hasPermission('clientes.excluir') && (
                 <GlassButton icon={Trash2} variant="danger" size="sm" onClick={() => handleDelete(item.id)} />
@@ -160,10 +190,13 @@ export const Clientes: React.FC = () => {
       <AnimatePresence>
         {isFormOpen && (
           <ClienteForm
-            cliente={editingItem}
+            cliente={editingFullClient ?? editingItem}
             onSave={handleSave}
-            onCancel={handleCloseForm}
-            loading={isSaving}
+            onCancel={() => {
+              setEditingFullClient(null);
+              handleCloseForm();
+            }}
+            loading={isSaving || (isLoadingDetails && !!editingItem)}
           />
         )}
       </AnimatePresence>

@@ -106,7 +106,7 @@ export const Login: React.FC = () => {
               whileHover={{ y: -2 }}
               whileTap={{ y: 1 }}
             >
-              {loading ? <Loader2 className="animate-spin" /> : <LogIn />}
+              {loading ? <Loader2 /> : <LogIn />}
               <span>{loading ? 'Entrando...' : 'Entrar'}</span>
             </motion.button>
           </form>

@@ -7,3 +7,4 @@ export * from './empresa';
 export * from './embalagem';
 export * from './financeiro';
 export * from './servico';
+export * from './vendedor';

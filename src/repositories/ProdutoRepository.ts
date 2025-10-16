@@ -1,5 +1,5 @@
 import { BaseRepository } from './BaseRepository';
-import { Produto } from '../types';
+import { Produto, ProdutoImagem } from '../types';
 import { camelToSnake, snakeToCamel } from '../lib/utils';
 import { IProdutoRepository } from './interfaces';
 import { RepositoryError } from './RepositoryError';
@@ -133,7 +133,7 @@ export class ProdutoRepository extends BaseRepository<Produto> implements IProdu
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const selectString = 'id, nome, codigo, preco_venda, controlar_estoque, situacao, unidade';
+    const selectString = 'id, nome, codigo, preco_venda, controlar_estoque, situacao, unidade, imagens:produto_imagens(storage_path)';
 
     const { data, error, count } = await this.supabase
       .from(this.tableName)
@@ -154,7 +154,7 @@ export class ProdutoRepository extends BaseRepository<Produto> implements IProdu
     const { data, error } = await this.supabase
       .from(this.tableName)
       .select(
-        '*, atributos:produto_atributos(*), fornecedores:produto_fornecedores(*, fornecedor:clientes_fornecedores(id, nome_razao_social)), embalagem:embalagens(*)'
+        '*, atributos:produto_atributos(*), fornecedores:produto_fornecedores(*, fornecedor:clientes_fornecedores(id, nome_razao_social)), embalagem:embalagens(*), imagens:produto_imagens(*)'
       )
       .eq('id', id)
       .single();
@@ -288,8 +288,37 @@ export class ProdutoRepository extends BaseRepository<Produto> implements IProdu
   }
 
   async delete(id: string): Promise<string[]> {
-    const { error: rpcError } = await this.supabase.rpc('delete_produto', { p_id: id });
+    const { data, error: rpcError } = await this.supabase.rpc('delete_produto', { p_id: id });
     if (rpcError) this.handleError('delete (rpc)', rpcError);
-    return [];
+    return (data as string[]) || [];
+  }
+
+  async uploadImagem(empresaId: string, produtoId: string, file: File): Promise<string> {
+    const sanitizedFileName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\s+/g, '_');
+    const filePath = `${empresaId}/${produtoId}/${Date.now()}-${sanitizedFileName}`;
+    const { error } = await this.supabase.storage
+      .from('produto-imagens')
+      .upload(filePath, file);
+
+    if (error) {
+      this.handleError('uploadImagem', error);
+    }
+    return filePath;
+  }
+
+  async deleteImagem(imagemId: string, filePath: string): Promise<void> {
+    const { error: dbError } = await this.supabase
+      .from('produto_imagens')
+      .delete()
+      .eq('id', imagemId);
+    if (dbError) this.handleError('deleteImagem (db)', dbError);
+
+    const { error: storageError } = await this.supabase.storage
+      .from('produto-imagens')
+      .remove([filePath]);
+      
+    if (storageError && storageError.message !== 'The resource was not found') {
+        this.handleError('deleteImagem (storage)', storageError);
+    }
   }
 }

@@ -122,7 +122,7 @@ export const EmbalagemForm: React.FC<EmbalagemFormProps> = ({ embalagem, onSave,
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Controller name="tipo" control={control} render={({ field }) => (
               <InputWrapper label="Tipo da embalagem">
-                <select className="glass-input" {...field}>
+                <select className="glass-input" {...field} value={field.value || ''}>
                   {Object.values(TipoEmbalagemProduto).map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </InputWrapper>

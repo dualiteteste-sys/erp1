@@ -62,14 +62,14 @@ export const produtoSchema = z
     estoqueMinimo: numericNullable,
     estoqueMaximo: numericNullable,
     localizacao: z.string().optional(),
-    diasPreparacao: z.number().int().nullable().optional(),
+    diasPreparacao: numericNullable,
 
     // Embalagem / Pesos / Dimensões
     controlarLotes: z.boolean().optional(),
     embalagemId: z.string().uuid().nullable().optional(),
     pesoLiquido: numericNullable,
     pesoBruto: numericNullable,
-    numeroVolumes: z.number().int().nullable().optional(),
+    numeroVolumes: numericNullable,
     largura: numericNullable,
     altura: numericNullable,
     comprimento: numericNullable,

@@ -1,16 +1,51 @@
 import {
-  ClienteFornecedor, Produto, ProdutoImagem, Embalagem, Papel, CategoriaFinanceira, FormaPagamento, Servico
+  ClienteFornecedor, Produto, ProdutoImagem, Embalagem, Papel, CategoriaFinanceira, FormaPagamento, Servico, Vendedor
 } from '../types';
 import { Empresa } from '../types/empresa';
 import { IRepository } from '../types/base';
 import { DashboardStats, FaturamentoMensal } from '../types/dashboard';
+
+// --- REPOSITORIES ---
+
+export interface IConfiguracoesRepository extends IRepository<Empresa> {
+  findFirst(): Promise<Empresa | null>;
+  uploadLogo(file: File): Promise<string>;
+  create(data: Partial<Empresa>, userId: string): Promise<Empresa>;
+}
+
+export interface IClienteRepository extends IRepository<ClienteFornecedor> {
+  search(empresaId: string, query: string, type?: 'cliente' | 'fornecedor'): Promise<Pick<ClienteFornecedor, 'id' | 'nomeRazaoSocial'>[]>;
+  uploadAnexo(empresaId: string, clienteId: string, file: File): Promise<string>;
+  deleteAnexo(anexoId: string, filePath: string): Promise<void>;
+  supabase: any;
+}
+export interface IProdutoRepository extends IRepository<Produto> {
+  search(empresaId: string, query: string): Promise<Pick<Produto, 'id' | 'nome' | 'precoVenda' | 'codigo' | 'unidade' | 'custoMedio'>[]>;
+  uploadImagem(empresaId: string, produtoId: string, file: File): Promise<string>;
+  deleteImagem(imagemId: string, filePath: string): Promise<void>;
+  supabase: any;
+}
+export interface IEmbalagemRepository extends IRepository<Embalagem> {}
+export interface IServicoRepository extends IRepository<Servico> {}
+export interface IVendedorRepository extends IRepository<Vendedor> {
+  checkEmailExists(empresaId: string, email: string, vendedorId?: string): Promise<boolean>;
+}
+export interface IDashboardRepository {
+    getDashboardStats(empresaId: string): Promise<DashboardStats>;
+    getFaturamentoMensal(empresaId: string): Promise<FaturamentoMensal[]>;
+}
+export interface IPapelRepository extends IRepository<Papel> {
+  setPermissions(papelId: string, permissionIds: string[]): Promise<void>;
+}
+export interface ICategoriaFinanceiraRepository extends IRepository<CategoriaFinanceira> {}
+export interface IFormaPagamentoRepository extends IRepository<FormaPagamento> {}
 
 // --- SERVICES ---
 
 export interface IConfiguracoesService {
   getEmpresaData(): Promise<Empresa | null>;
   saveEmpresaData(data: Partial<Empresa>, logoFile?: File | null, userId?: string): Promise<Empresa>;
-  getAll(empresaId: string, options?: { page?: number; pageSize?: number }): Promise<{ data: Empresa[]; count: number }>;
+  getAll(options?: { page?: number; pageSize?: number }): Promise<{ data: Empresa[]; count: number }>;
   findById(id: string): Promise<Empresa | null>;
   create(data: Partial<Empresa>, userId: string): Promise<Empresa>;
   update(id: string, data: Partial<Empresa>): Promise<Empresa>;
@@ -31,6 +66,9 @@ export interface IProdutoService extends IRepository<Produto> {
 }
 export interface IEmbalagemService extends IRepository<Embalagem> {}
 export interface IServicoService extends IRepository<Servico> {}
+export interface IVendedorService extends IRepository<Vendedor> {
+  checkEmailExists(empresaId: string, email: string, vendedorId?: string): Promise<boolean>;
+}
 export interface IDashboardService {
     getDashboardStats(empresaId: string): Promise<DashboardStats>;
     getFaturamentoMensal(empresaId: string): Promise<FaturamentoMensal[]>;

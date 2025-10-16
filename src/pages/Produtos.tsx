@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Filter, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Filter, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { Header } from '../components/layout/Header';
@@ -12,13 +12,17 @@ import { Pagination } from '../components/ui/Pagination';
 import { DataTable } from '../components/ui/DataTable';
 
 import { useModalForm } from '../hooks/useModalForm';
-import { Produto, SituacaoProduto } from '../types';
+import { Produto, ProdutoImagem, SituacaoProduto } from '../types';
 import { useCrud } from '../hooks/useCrud';
 import { useEmpresa } from '../contexts/EmpresaContext';
 import { useConfirmationStore } from '../stores/useConfirmationStore';
 import { ProdutoFormData } from '../schemas/produtoSchema';
+import { useService } from '../hooks/useService';
+
+const isFile = (item: any): item is File => item instanceof File;
 
 export const Produtos: React.FC = () => {
+  const produtoService = useService('produto');
   const {
     items: produtos,
     loading,
@@ -45,19 +49,32 @@ export const Produtos: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [filtro, setFiltro] = useState('');
   const [editingFull, setEditingFull] = useState<Produto | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const produtosFiltrados = produtos.filter((produto) =>
     produto.nome.toLowerCase().includes(filtro.toLowerCase()) ||
     (produto.codigo && produto.codigo.toLowerCase().includes(filtro.toLowerCase()))
   );
 
-  // abre edição (se precisar buscar mais detalhes, pode usar seu service aqui)
   const openEditFull = async (row: Produto) => {
-    setEditingFull(row);
-    handleOpenEditForm(row);
+    setIsLoadingDetails(true);
+    handleOpenEditForm(row); // Abre o modal imediatamente com dados parciais
+    try {
+      const fullProduct = await produtoService.findById(row.id);
+      if (fullProduct) {
+        setEditingFull(fullProduct); // Atualiza com os dados completos
+      } else {
+        toast.error('Produto não encontrado.');
+        handleCloseForm();
+      }
+    } catch (err: any) {
+      toast.error(`Falha ao carregar detalhes: ${err.message}`);
+      handleCloseForm();
+    } finally {
+      setIsLoadingDetails(false);
+    }
   };
 
-  /** Salvar produto — garante defaults de situacao/tipo e normaliza GTIN/NCM */
   const handleSave = async (produtoData: ProdutoFormData | any) => {
     if (!currentEmpresa) {
       toast.error('Nenhuma empresa selecionada. Não é possível salvar.');
@@ -66,6 +83,9 @@ export const Produtos: React.FC = () => {
 
     setIsSaving(true);
     try {
+      const filesToUpload = (produtoData.imagens || []).filter(isFile);
+      const existingImagens = (produtoData.imagens || []).filter((img: any): img is ProdutoImagem => !isFile(img));
+
       const gtinDigits =
         produtoData?.gtin
           ? String(produtoData.gtin).replace(/\D/g, '')
@@ -78,19 +98,12 @@ export const Produtos: React.FC = () => {
 
       const dataToSave = {
         ...produtoData,
-
-        // ✅ Fallbacks garantidos
         situacao: produtoData?.situacao ?? 'Ativo',
         tipo: produtoData?.tipo ?? 'Simples',
-
-        // normalizações
         gtin: gtinDigits,
         codigoBarras: gtinDigits,
         ncm: ncmDigits,
-
         empresaId: currentEmpresa.id,
-
-        // arrays aninhados no formato esperado
         atributos: produtoData.atributos?.map(
           ({ atributo, valor }: any) => ({ atributo, valor })
         ),
@@ -100,13 +113,31 @@ export const Produtos: React.FC = () => {
             codigoNoFornecedor,
           })
         ),
+        imagens: existingImagens,
       };
 
-      // create/update
+      let savedProduto: Produto;
+
       if (editingItem?.id) {
-        await updateItem(editingItem.id, dataToSave);
+        savedProduto = await updateItem(editingItem.id, dataToSave);
+        
+        const originalImagens = editingItem.imagens || [];
+        const imagensToDelete = originalImagens.filter(
+          (orig): orig is ProdutoImagem => !isFile(orig) && !existingImagens.some(ex => ex.id === orig.id)
+        );
+        for (const imagem of imagensToDelete) {
+          await produtoService.deleteImagem(imagem.id, imagem.storagePath);
+        }
+
       } else {
-        await createItem(dataToSave as Omit<Produto, 'id' | 'createdAt' | 'updatedAt'>);
+        savedProduto = await createItem(dataToSave as Omit<Produto, 'id' | 'createdAt' | 'updatedAt'>);
+      }
+
+      if (savedProduto?.id && filesToUpload.length > 0) {
+        const uploadPromises = filesToUpload.map(file => 
+          produtoService.uploadImagem(currentEmpresa.id, savedProduto.id, file)
+        );
+        await Promise.all(uploadPromises);
       }
 
       setEditingFull(null);
@@ -207,10 +238,11 @@ export const Produtos: React.FC = () => {
           actions={(item) => (
             <div className="flex items-center gap-2">
               <GlassButton
-                icon={Edit2}
+                icon={isLoadingDetails && editingItem?.id === item.id ? Loader2 : Edit2}
                 variant="secondary"
                 size="sm"
                 onClick={() => openEditFull(item)}
+                disabled={isLoadingDetails && editingItem?.id === item.id}
               />
               <GlassButton
                 icon={Trash2}
@@ -237,7 +269,7 @@ export const Produtos: React.FC = () => {
               setEditingFull(null);
               handleCloseForm();
             }}
-            loading={isSaving}
+            loading={isSaving || (isLoadingDetails && !!editingItem)}
           />
         )}
       </AnimatePresence>

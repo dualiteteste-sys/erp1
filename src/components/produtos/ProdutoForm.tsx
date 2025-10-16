@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ListTree, MoreHorizontal, FileText } from 'lucide-react';
-import { Produto } from '../../types';
+import { Package, ListTree, MoreHorizontal, FileText, Image as ImageIcon } from 'lucide-react';
+import { Produto, ProdutoImagem } from '../../types';
 import { ProdutoFormData, produtoSchema } from '../../schemas/produtoSchema';
 import { GenericForm } from '../ui/GenericForm';
 import { DadosGeraisTab } from './tabs/DadosGeraisTab';
 import { DadosComplementaresTab } from './tabs/DadosComplementaresTab';
+import { ImagensTab } from './tabs/ImagensTab';
 import { AtributosTab } from './tabs/AtributosTab';
 import { OutrosTab } from './tabs/OutrosTab';
 import { useEmpresa } from '../../contexts/EmpresaContext';
@@ -62,6 +63,7 @@ const getInitialData = (p?: Partial<Produto>, empresaId?: string): Partial<Produ
   observacoes: p?.observacoes || '',
   atributos: p?.atributos?.map(attr => ({ ...attr, id: attr.id || crypto.randomUUID() })) || [],
   fornecedores: p?.fornecedores?.map(f => ({ ...f, id: f.id || crypto.randomUUID() })) || [],
+  imagens: p?.imagens || [],
 });
 
 export const ProdutoForm: React.FC<ProdutoFormProps> = ({ produto, onSave, onCancel, loading }) => {
@@ -74,7 +76,7 @@ export const ProdutoForm: React.FC<ProdutoFormProps> = ({ produto, onSave, onCan
     defaultValues: getInitialData(produto, currentEmpresa?.id),
   });
 
-  const { control, handleSubmit, watch, setValue, reset } = form;
+  const { control, handleSubmit, watch, setValue, reset, setError, clearErrors } = form;
 
   useEffect(() => {
     reset(getInitialData(produto, currentEmpresa?.id));
@@ -87,6 +89,7 @@ export const ProdutoForm: React.FC<ProdutoFormProps> = ({ produto, onSave, onCan
   const tabs = useMemo(() => [
     { id: 'dadosGerais', label: 'Dados Gerais', icon: Package },
     { id: 'dadosComplementares', label: 'Dados Complementares', icon: FileText },
+    { id: 'imagens', label: 'Imagens', icon: ImageIcon },
     { id: 'atributos', label: 'Atributos', icon: ListTree },
     { id: 'outros', label: 'Outros', icon: MoreHorizontal },
   ], []);
@@ -99,12 +102,16 @@ export const ProdutoForm: React.FC<ProdutoFormProps> = ({ produto, onSave, onCan
             control={control}
             watch={watch}
             setValue={setValue}
+            setError={setError}
+            clearErrors={clearErrors}
             onSuggestNcm={() => setIsNcmPanelOpen(true)}
             isEditing={!!produto?.id}
           />
         );
       case 'dadosComplementares':
         return <DadosComplementaresTab control={control} />;
+      case 'imagens':
+        return <ImagensTab images={watch('imagens') || []} setValue={setValue} />;
       case 'atributos':
         return <AtributosTab control={control} />;
       case 'outros':

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GenericForm } from '../../ui/GenericForm';
 import { GlassInput } from '../../ui/GlassInput';
@@ -22,7 +22,7 @@ interface CategoriaFinanceiraFormProps {
 }
 
 export const CategoriaFinanceiraForm: React.FC<CategoriaFinanceiraFormProps> = ({ categoria, onSave, onCancel, loading }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       descricao: categoria?.descricao || '',
@@ -42,11 +42,17 @@ export const CategoriaFinanceiraForm: React.FC<CategoriaFinanceiraFormProps> = (
         <InputWrapper label="Descrição" error={errors.descricao?.message}>
           <GlassInput {...register('descricao')} />
         </InputWrapper>
-        <InputWrapper label="Tipo" error={errors.tipo?.message}>
-          <select className="glass-input" {...register('tipo')}>
-            {Object.values(TipoCategoriaFinanceira).map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </InputWrapper>
+        <Controller
+          name="tipo"
+          control={control}
+          render={({ field }) => (
+            <InputWrapper label="Tipo" error={errors.tipo?.message}>
+              <select className="glass-input" {...field} value={field.value || ''}>
+                {Object.values(TipoCategoriaFinanceira).map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </InputWrapper>
+          )}
+        />
       </div>
     </GenericForm>
   );

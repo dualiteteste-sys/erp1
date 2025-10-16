@@ -32,7 +32,7 @@ export interface ClienteAnexo extends IEntity {
   filename: string;
   contentType?: string;
   tamanhoBytes?: number;
-  url?: string; // Adicionado para facilitar o acesso no frontend
+  url?: string;
 }
 
 // Entidade principal para a tabela `clientes_fornecedores`

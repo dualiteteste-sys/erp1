@@ -167,7 +167,7 @@ export const ServidorEmail: React.FC = () => {
                         <div className="flex gap-4">
                             <GlassButton type="button" variant="secondary" onClick={handleCancel} disabled={isSaving}>Cancelar</GlassButton>
                             <GlassButton type="submit" disabled={isSaving || loadingContext}>
-                                {isSaving ? <Loader2 className="animate-spin" /> : <Save />}
+                                {isSaving ? <Loader2 /> : <Save />}
                                 {isSaving ? 'Salvando...' : 'Salvar'}
                             </GlassButton>
                         </div>

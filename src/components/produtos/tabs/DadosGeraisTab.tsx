@@ -1,5 +1,5 @@
 import React from 'react';
-import { Control, UseFormWatch, UseFormSetValue, Controller } from 'react-hook-form';
+import { Control, UseFormWatch, UseFormSetValue, Controller, UseFormSetError, UseFormClearErrors } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { TipoProduto, OrigemProduto, SituacaoProduto } from '../../../types';
 import { CurrencyInput } from '../../ui/CurrencyInput';
@@ -12,19 +12,70 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Sparkles } from 'lucide-react';
 import { GlassButton } from '../../ui/GlassButton';
 import { GlassInput } from '../../ui/GlassInput';
+import toast from 'react-hot-toast';
+import { useEmpresa } from '../../../contexts/EmpresaContext';
+import { supabase } from '../../../lib/supabaseClient';
 
 interface DadosGeraisTabProps {
   control: Control<ProdutoFormData>;
   watch: UseFormWatch<ProdutoFormData>;
   setValue: UseFormSetValue<ProdutoFormData>;
+  setError: UseFormSetError<ProdutoFormData>;
+  clearErrors: UseFormClearErrors<ProdutoFormData>;
   onSuggestNcm: () => void;
   isEditing: boolean;
 }
 
-export const DadosGeraisTab: React.FC<DadosGeraisTabProps> = ({ control, watch, setValue, onSuggestNcm, isEditing }) => {
+export const DadosGeraisTab: React.FC<DadosGeraisTabProps> = ({ control, watch, setValue, setError, clearErrors, onSuggestNcm, isEditing }) => {
   const ncmCode = watch('ncm');
   const { description: ncmDescription, loading: ncmLoading, fetchNcmDescription, clearDescription } = useNcm();
   const [showNcmTooltip, setShowNcmTooltip] = React.useState(false);
+
+  const { currentEmpresa } = useEmpresa();
+  const produtoId = watch('id');
+
+  const handleCodigoBlur = async (codigo: string | undefined) => {
+    if (!codigo) {
+      clearErrors("codigo");
+      return;
+    }
+
+    if (!currentEmpresa?.id) return;
+
+    const toastId = toast.loading('Verificando código (SKU)...');
+    try {
+      let query = supabase
+        .from('produtos')
+        .select('id', { count: 'exact', head: true })
+        .eq('empresa_id', currentEmpresa.id)
+        .eq('codigo', codigo);
+
+      if (produtoId) {
+        query = query.not('id', 'eq', produtoId);
+      }
+
+      const { error, count } = await query;
+      toast.dismiss(toastId);
+      
+      if (error) {
+        throw error;
+      }
+
+      if (count && count > 0) {
+        setError("codigo", {
+          type: "manual",
+          message: "Este código (SKU) já está em uso.",
+        });
+        toast.error('Este código (SKU) já está em uso por outro produto.');
+      } else {
+        clearErrors("codigo");
+        toast.success('Código (SKU) disponível.');
+      }
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error('Falha ao verificar o código (SKU).');
+    }
+  };
 
   const handleNcmHover = () => {
     if (ncmCode) {
@@ -43,14 +94,16 @@ export const DadosGeraisTab: React.FC<DadosGeraisTabProps> = ({ control, watch, 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Controller name="tipo" control={control} render={({ field }) => (
           <InputWrapper label="Tipo do Produto">
-            <select className="glass-input" {...field}>
+            <select className="glass-input" {...field} value={field.value || ''}>
+              <option value="">Selecione...</option>
               {Object.values(TipoProduto).map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </InputWrapper>
         )} />
          <Controller name="situacao" control={control} render={({ field }) => (
           <InputWrapper label="Situação">
-            <select className="glass-input" {...field}>
+            <select className="glass-input" {...field} value={field.value || ''}>
+              <option value="">Selecione...</option>
               {Object.values(SituacaoProduto).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </InputWrapper>
@@ -75,7 +128,8 @@ export const DadosGeraisTab: React.FC<DadosGeraisTabProps> = ({ control, watch, 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Controller name="origem" control={control} render={({ field }) => (
           <InputWrapper label="Origem do produto *" helpText="Conforme tabela ICMS">
-            <select className="glass-input" {...field}>
+            <select className="glass-input" {...field} value={field.value || ''}>
+              <option value="">Selecione...</option>
               {Object.values(OrigemProduto).map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </InputWrapper>
@@ -111,9 +165,14 @@ export const DadosGeraisTab: React.FC<DadosGeraisTabProps> = ({ control, watch, 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Controller name="codigo" control={control} render={({ field }) => (
-          <InputWrapper label="Código (SKU)" helpText="Opcional">
-            <GlassInput {...field} maxLength={50} placeholder="Referência interna" />
+        <Controller name="codigo" control={control} render={({ field, fieldState }) => (
+          <InputWrapper label="Código (SKU)" helpText="Opcional" error={fieldState.error?.message}>
+            <GlassInput 
+              {...field} 
+              maxLength={50} 
+              placeholder="Referência interna"
+              onBlur={() => handleCodigoBlur(field.value)}
+            />
           </InputWrapper>
         )} />
         <Controller name="cest" control={control} render={({ field }) => (
