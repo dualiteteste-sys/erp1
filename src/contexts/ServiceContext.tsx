@@ -3,7 +3,7 @@ import { serviceContainer } from '../compositionRoot';
 import { 
   IClienteService, IProdutoService, IEmbalagemService, 
   IConfiguracoesService, IDashboardService, IPapelService,
-  ICategoriaFinanceiraService, IFormaPagamentoService, IServicoService, IVendedorService
+  ICategoriaFinanceiraService, IFormaPagamentoService, IServicoService, IVendedorService, ICrmService
 } from '../services/interfaces';
 
 export interface ServiceContainer {
@@ -17,6 +17,7 @@ export interface ServiceContainer {
   papel: IPapelService;
   categoriaFinanceira: ICategoriaFinanceiraService;
   formaPagamento: IFormaPagamentoService;
+  crm: ICrmService;
 }
 
 export const ServiceContext = createContext<Omit<ServiceContainer, 'user'>>(serviceContainer);

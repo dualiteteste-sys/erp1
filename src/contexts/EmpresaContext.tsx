@@ -39,9 +39,15 @@ export const EmpresaProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       const empresasCamel = snakeToCamel(data) as Empresa[];
       setEmpresas(empresasCamel);
-      if (empresasCamel.length > 0 && !currentEmpresa) {
-        setCurrentEmpresa(empresasCamel[0]);
-      }
+      
+      // Lógica mais segura para definir a empresa atual
+      setCurrentEmpresa(current => {
+        if (current && empresasCamel.some(e => e.id === current.id)) {
+          return current; // Mantém a empresa atual se ela ainda estiver na lista
+        }
+        return empresasCamel[0] || null; // Caso contrário, seleciona a primeira ou nulo
+      });
+
     } catch (err: any) {
       console.error('Erro ao buscar empresas:', err);
       setError('Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet e as configurações de CORS no seu projeto Supabase.');
@@ -49,16 +55,16 @@ export const EmpresaProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setLoading(false);
     }
-  }, [user, currentEmpresa]);
+  }, [user]); // A dependência correta é apenas o `user`
 
   useEffect(() => {
     if (authStatus === 'ready') {
         loadEmpresas();
     }
-  }, [user, authStatus, loadEmpresas]);
+  }, [authStatus, loadEmpresas]);
 
   const reloadEmpresas = useCallback(() => {
-    setCurrentEmpresa(null);
+    setCurrentEmpresa(null); // Força a re-seleção da empresa padrão
     loadEmpresas();
   }, [loadEmpresas]);
 

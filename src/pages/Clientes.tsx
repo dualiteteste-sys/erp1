@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Filter, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Filter, Loader2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Header } from '../components/layout/Header';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -152,6 +152,15 @@ export const Clientes: React.FC = () => {
               onChange={(e) => setFiltro(e.target.value)}
               className="w-full max-w-md"
             />
+            <GlassButton 
+              icon={loading ? Loader2 : RefreshCw} 
+              variant="secondary" 
+              onClick={() => loadItems(1)}
+              disabled={loading}
+              className={loading ? 'animate-spin' : ''}
+            >
+              Atualizar
+            </GlassButton>
             <GlassButton icon={Filter} variant="secondary">Filtros</GlassButton>
           </div>
           {hasPermission('clientes.escrever') && (

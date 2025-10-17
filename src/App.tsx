@@ -59,11 +59,9 @@ function App() {
                           <Route path="/notas-servico" element={<EmDesenvolvimento modulo="Notas de Serviço" />} />
                           <Route path="/servicos/cobrancas" element={<EmDesenvolvimento modulo="Cobranças de Serviços" />} />
                           
-                          <Route path="/pedidos-vendas" element={<EmDesenvolvimento modulo="Pedidos de Venda" />} />
                           <Route path="/notas-fiscais" element={<EmDesenvolvimento modulo="Notas Fiscais" />} />
                           <Route path="/notas-fiscais/novo/:pedidoId" element={<EmDesenvolvimento modulo="Nova Fatura de Venda" />} />
                           <Route path="/expedicao" element={<EmDesenvolvimento modulo="Expedição" />} />
-                          <Route path="/crm" element={<EmDesenvolvimento modulo="CRM" />} />
                           <Route path="/automacoes" element={<EmDesenvolvimento modulo="Painel de Automações" />} />
                           <Route path="/pdv" element={<EmDesenvolvimento modulo="PDV" />} />
                           <Route path="/propostas-comerciais" element={<EmDesenvolvimento modulo="Propostas Comerciais" />} />

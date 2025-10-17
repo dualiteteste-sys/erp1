@@ -1,5 +1,5 @@
 import {
-  ClienteFornecedor, Produto, ProdutoImagem, Embalagem, Papel, CategoriaFinanceira, FormaPagamento, Servico, Vendedor
+  ClienteFornecedor, Produto, ProdutoImagem, Embalagem, Papel, CategoriaFinanceira, FormaPagamento, Servico, Vendedor, Oportunidade, PedidoVenda
 } from '../types';
 import { Empresa } from '../types/empresa';
 import { IRepository } from '../types/base';
@@ -39,6 +39,10 @@ export interface IPapelRepository extends IRepository<Papel> {
 }
 export interface ICategoriaFinanceiraRepository extends IRepository<CategoriaFinanceira> {}
 export interface IFormaPagamentoRepository extends IRepository<FormaPagamento> {}
+export interface ICrmRepository extends IRepository<Oportunidade> {}
+export interface IPedidoVendaRepository extends IRepository<PedidoVenda> {
+  searchProdutosEServicos(empresaId: string, query: string): Promise<any[]>;
+}
 
 // --- SERVICES ---
 
@@ -78,3 +82,7 @@ export interface IPapelService extends IRepository<Papel> {
 }
 export interface ICategoriaFinanceiraService extends IRepository<CategoriaFinanceira> {}
 export interface IFormaPagamentoService extends IRepository<FormaPagamento> {}
+export interface ICrmService extends IRepository<Oportunidade> {}
+export interface IPedidoVendaService extends IRepository<PedidoVenda> {
+  searchProdutosEServicos(empresaId: string, query: string): Promise<any[]>;
+}

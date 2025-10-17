@@ -12,7 +12,7 @@ import { createVendedorService } from './services/factories/vendedorServiceFacto
 
 // Use a factory to create the service container.
 // This ensures that all dependencies are injected correctly and consistently.
-export const serviceContainer: Omit<ServiceContainer, 'user'> = {
+export const serviceContainer: Omit<ServiceContainer, 'user' | 'crm' | 'pedidoVenda'> = {
   cliente: createClienteService(),
   produto: createProdutoService(),
   embalagem: createEmbalagemService(),

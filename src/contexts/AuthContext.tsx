@@ -18,28 +18,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-
-    // Recupera sessão atual (após refresh)
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session ?? null);
-      setUser(data.session?.user ?? null);
-      setStatus('ready');
-    });
-
-    // Escuta mudanças de autenticação (login/logout/refresh)
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      setStatus('ready');
+    // O onAuthStateChange é a fonte única da verdade para o estado da sessão.
+    // Ele é disparado uma vez no carregamento inicial com a sessão atual e, em seguida,
+    // sempre que o estado de autenticação mudar (login, logout, refresh de token).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setStatus('ready'); // O primeiro evento que chega define o status de autenticação inicial.
     });
 
     return () => {
-      mounted = false;
-      sub?.subscription?.unsubscribe();
+      subscription?.unsubscribe();
     };
-  }, []);
+  }, []); // Executa apenas uma vez, quando o componente é montado.
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -47,7 +38,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+    }
+    // Limpa o estado manualmente como um fallback, embora o onAuthStateChange deva cuidar disso.
+    setSession(null);
+    setUser(null);
   };
 
   const value = useMemo(() => ({ status, session, user, signIn, signOut }), [status, session, user]);

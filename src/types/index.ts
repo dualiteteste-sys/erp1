@@ -8,3 +8,5 @@ export * from './embalagem';
 export * from './financeiro';
 export * from './servico';
 export * from './vendedor';
+export * from './crm';
+export * from './pedidoVenda';

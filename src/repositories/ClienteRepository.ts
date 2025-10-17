@@ -15,6 +15,18 @@ export class ClienteRepository extends BaseRepository<ClienteFornecedor> impleme
     super('clientes_fornecedores');
   }
 
+  /**
+   * Sobrescreve o método base para buscar apenas os campos necessários para a listagem,
+   * otimizando a consulta.
+   */
+  async findAll(
+    empresaId: string,
+    options: { page?: number; pageSize?: number } = {}
+  ): Promise<{ data: ClienteFornecedor[]; count: number }> {
+    const select = 'id, nome_razao_social, fantasia, cnpj_cpf, email, celular, telefone';
+    return super.findAll(empresaId, options, select);
+  }
+
   protected createEntity(data: Omit<ClienteFornecedor, 'id' | 'createdAt' | 'updatedAt'>): ClienteFornecedor {
     // Este método é um placeholder e não é usado para inserts diretos.
     return {

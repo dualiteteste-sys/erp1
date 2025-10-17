@@ -53,7 +53,6 @@ export const menuItems: MenuItem[] = [
     children: [
       { id: 'pedidos-vendas', label: 'Pedidos de Vendas', icon: ShoppingCart, path: '/pedidos-vendas' },
       { id: 'propostas-comerciais', label: 'Propostas Comerciais', icon: DraftingCompass, path: '/propostas-comerciais' },
-      { id: 'crm', label: 'CRM', icon: HeartHandshake, path: '/crm' },
       { id: 'pdv', label: 'PDV', icon: Store, path: '/pdv' },
       { id: 'notas-fiscais', label: 'Notas Fiscais', icon: Receipt, path: '/notas-fiscais' },
       { id: 'expedicao', label: 'Expedição', icon: Truck, path: '/expedicao' },

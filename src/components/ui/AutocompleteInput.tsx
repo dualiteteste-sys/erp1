@@ -10,7 +10,7 @@ interface Suggestion {
 
 interface AutocompleteInputProps {
   value: string;
-  onValueChange: (value: string | null, suggestions: Suggestion[]) => void;
+  onValueChange: (value: string | null, suggestions?: Suggestion[]) => void;
   initialLabel?: string;
   fetchSuggestions: (query: string) => Promise<Suggestion[]>;
   placeholder?: string;
@@ -27,7 +27,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   label,
   disabled,
 }) => {
-  const [query, setQuery] = useState(initialLabel);
+  const [query, setQuery] = useState(initialLabel || '');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -36,12 +36,12 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setQuery(initialLabel);
-  }, [initialLabel, value]);
+    setQuery(initialLabel || '');
+  }, [initialLabel]);
 
   const debouncedFetch = useCallback(
     (searchQuery: string) => {
-      if (searchQuery.length < 2) {
+      if (searchQuery.length < 1) {
         setSuggestions([]);
         setIsDropdownOpen(false);
         return;
@@ -60,6 +60,7 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
   useEffect(() => {
     const handler = setTimeout(() => {
+      // Fetch only if the query is not the initial label (unless there is no value yet)
       if (query !== initialLabel || !value) {
         debouncedFetch(query);
       }
@@ -82,7 +83,6 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     onValueChange(suggestion.value, suggestions);
     setIsDropdownOpen(false);
     setActiveIndex(-1);
-    // Para o PDV, limpar o input após selecionar
     if (placeholder?.includes('produto')) {
         setTimeout(() => setQuery(''), 0);
         inputRef.current?.blur();
@@ -124,10 +124,10 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           onChange={(e) => {
             setQuery(e.target.value);
             if (value) {
-              onValueChange(null, []);
+              onValueChange(null);
             }
           }}
-          onFocus={() => { if (query.length > 1 && suggestions.length > 0) setIsDropdownOpen(true); }}
+          onFocus={() => { if (query.length > 0 && suggestions.length > 0) setIsDropdownOpen(true); }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
